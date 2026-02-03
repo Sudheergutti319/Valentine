@@ -1,0 +1,584 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My Dearest Love</title>
+  <style>
+    :root{
+      --bg1:#fff6f7;
+      --bg2:#fdecef;
+      --card:#ffffffcc;
+      --text:#2b2b2b;
+      --accent:#c44762;
+      --accent2:#ff7aa2;
+      --shadow: 0 12px 40px rgba(0,0,0,.12);
+      --radius: 22px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-serif, Georgia, "Times New Roman", serif;
+      color:var(--text);
+      min-height:100vh;
+      background: radial-gradient(1100px 700px at 20% 10%, var(--bg2), transparent 60%),
+                  radial-gradient(900px 600px at 80% 20%, #ffe6ef, transparent 55%),
+                  linear-gradient(135deg, var(--bg1), #fff);
+      overflow:hidden; /* keeps falling text clean */
+    }
+
+    /* Falling text layer */
+    #fall-layer{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      overflow:hidden;
+      z-index:1;
+    }
+    .fall{
+      position:absolute;
+      top:-40px;
+      left:0;
+      font-family: ui-serif, Georgia, serif;
+      font-weight:600;
+      letter-spacing:.08em;
+      font-size:14px;
+      opacity:.35;
+      color: rgba(196,71,98,.55);
+      text-shadow: 0 1px 0 rgba(255,255,255,.6);
+      transform: translate3d(0,0,0);
+      will-change: transform;
+      white-space:nowrap;
+      user-select:none;
+    }
+
+    /* App layout */
+    #app{
+      position:relative;
+      z-index:2;
+      height:100vh;
+      display:grid;
+      place-items:center;
+      padding:24px;
+    }
+    .card{
+      width:min(720px, 94vw);
+      background:var(--card);
+      border: 1px solid rgba(196,71,98,.12);
+      box-shadow:var(--shadow);
+      border-radius:var(--radius);
+      padding:28px 22px;
+      backdrop-filter: blur(8px);
+      text-align:center;
+    }
+    .hearts{
+      display:flex;
+      gap:10px;
+      justify-content:center;
+      margin-bottom:10px;
+      opacity:.9;
+    }
+    .heart{
+      width:14px;height:14px;
+      background:var(--accent);
+      transform: rotate(45deg);
+      border-radius:3px;
+      position:relative;
+      box-shadow: 0 6px 18px rgba(196,71,98,.25);
+    }
+    .heart::before,.heart::after{
+      content:"";
+      position:absolute;
+      width:14px;height:14px;
+      border-radius:50%;
+      background:var(--accent);
+    }
+    .heart::before{left:-7px; top:0}
+    .heart::after{top:-7px; left:0}
+
+    h1{
+      margin:10px 0 8px;
+      font-size: clamp(30px, 4vw, 44px);
+      color:var(--accent);
+      letter-spacing:.02em;
+    }
+    .subtitle{
+      margin:0 0 18px;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      font-size:14px;
+      opacity:.75;
+    }
+    .prompt{
+      margin:10px auto 18px;
+      max-width: 58ch;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      line-height:1.45;
+      opacity:.92;
+    }
+    .btn{
+      border:none;
+      padding:14px 18px;
+      border-radius:999px;
+      cursor:pointer;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      font-weight:700;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      color:white;
+      box-shadow: 0 10px 30px rgba(196,71,98,.25);
+      transition: transform .12s ease, filter .12s ease;
+    }
+    .btn:hover{ transform: translateY(-1px); filter: brightness(1.03); }
+    .btn:active{ transform: translateY(0px) scale(.99); }
+
+    .choices{
+      display:grid;
+      gap:10px;
+      margin: 10px auto 0;
+      max-width: 540px;
+    }
+    .choice{
+      border: 1px solid rgba(196,71,98,.18);
+      background:#fff;
+      padding:12px 14px;
+      border-radius:14px;
+      cursor:pointer;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      text-align:left;
+      transition: transform .12s ease, border-color .12s ease;
+    }
+    .choice:hover{
+      transform: translateY(-1px);
+      border-color: rgba(196,71,98,.35);
+    }
+
+    .nav{
+      display:flex;
+      gap:10px;
+      justify-content:center;
+      margin-top:16px;
+      flex-wrap:wrap;
+    }
+    .ghost{
+      background:transparent;
+      color:var(--accent);
+      border:1px solid rgba(196,71,98,.35);
+      box-shadow:none;
+    }
+
+    /* Final message & photos */
+    .big-quote{
+      margin:16px auto 6px;
+      font-size: clamp(22px, 3vw, 30px);
+      color:var(--accent);
+      font-style:italic;
+    }
+    .sign{
+      margin-top:10px;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      opacity:.85;
+    }
+
+    .photos{
+      margin:18px auto 0;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+      max-width: 560px;
+    }
+    .photo{
+      border-radius:16px;
+      overflow:hidden;
+      border:1px solid rgba(0,0,0,.08);
+      box-shadow: 0 10px 26px rgba(0,0,0,.12);
+      background:#fff;
+      cursor:pointer;
+      position:relative;
+    }
+.photo-bg{
+  width:100%;
+  height:220px;
+  background-size:cover;
+  background-position:center;
+  border-radius:16px;
+}
+    .photo img{
+      width:100%;
+      height:220px;
+      object-fit:cover;
+      display:block;
+      transition: transform .25s ease;
+    }
+    .photo:hover img{ transform: scale(1.03); }
+    .photo span{
+      position:absolute;
+      bottom:10px; left:10px;
+      background: rgba(255,255,255,.85);
+      padding:6px 10px;
+      border-radius:999px;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      font-size:12px;
+      border:1px solid rgba(196,71,98,.15);
+    }
+    @media (max-width:560px){
+      .photos{ grid-template-columns:1fr; }
+      .photo img{ height:200px; }
+    }
+
+    /* Modal */
+    #modal{
+      position:fixed;
+      inset:0;
+      display:none;
+      place-items:center;
+      background: rgba(0,0,0,.55);
+      z-index:5;
+      padding:18px;
+    }
+    #modal.open{ display:grid; }
+    #modal .box{
+      width:min(940px, 96vw);
+      background:#fff;
+      border-radius:18px;
+      overflow:hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,.35);
+      position:relative;
+    }
+    #modal img{
+      width:100%;
+      max-height: 82vh;
+      object-fit:contain;
+      display:block;
+      background:#111;
+    }
+    #modal button{
+      position:absolute;
+      top:10px; right:10px;
+      border:none;
+      background: rgba(255,255,255,.9);
+      border-radius:999px;
+      padding:10px 12px;
+      cursor:pointer;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      font-weight:800;
+    }
+  </style>
+</head>
+<body>
+  <!-- Falling “I LOVE YOU CARINO” layer -->
+  <div id="fall-layer" aria-hidden="true"></div>
+
+  <main id="app">
+    <section class="card" id="screen"></section>
+  </main>
+  <!-- Background Music -->
+<audio id="bgMusic" loop>
+  <source src="I_Wanna_Be_Yours.mp3" type="audio/mpeg">
+</audio>
+
+<button id="playMusicBtn" class="btn ghost"
+  style="position:fixed; bottom:20px; right:20px; z-index:9999;">
+  ▶ Play Music
+</button>
+
+  <!-- Photo modal -->
+  <div id="modal" role="dialog" aria-modal="true" aria-label="Photo preview">
+    <div class="box">
+      <button id="closeModal" type="button">✕</button>
+      <img id="modalImg" alt="Preview" />
+    </div>
+  </div>
+
+  <script>
+    /***********************
+     * 1) Falling Text Engine
+     ***********************/
+    const FALL_TEXT = "I LOVE YOU CARINO";
+    const fallLayer = document.getElementById("fall-layer");
+
+    // NOTE:
+    // 0.001 sec = 1ms spawn is too fast for real browsers + will lag/crash.
+    // So we keep it VERY SLOW falling (long duration) + steady spawning.
+    const config = {
+      spawnIntervalMs: 80,     // create a new text every 80ms (smooth + safe)
+      fallDurationMs: 65000,   // text takes ~65 seconds to fall (very slow)
+      minFont: 12,
+      maxFont: 18
+    };
+
+    function rand(min, max){ return Math.random() * (max - min) + min; }
+
+    function spawnFall(){
+      const el = document.createElement("div");
+      el.className = "fall";
+      el.textContent = FALL_TEXT;
+
+      const vw = window.innerWidth;
+      const startX = rand(0, Math.max(0, vw - 240));
+      const fontSize = rand(config.minFont, config.maxFont);
+      const drift = rand(-40, 40); // small horizontal drift
+
+      el.style.left = startX + "px";
+      el.style.fontSize = fontSize + "px";
+      el.style.opacity = rand(0.22, 0.55);
+
+      fallLayer.appendChild(el);
+
+      const start = performance.now();
+      const duration = config.fallDurationMs;
+
+      function tick(t){
+        const p = Math.min(1, (t - start) / duration);
+        const y = (-40) + p * (window.innerHeight + 120);
+        const x = drift * Math.sin(p * Math.PI * 2); // gentle wave drift
+        el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+
+        if (p < 1){
+          requestAnimationFrame(tick);
+        } else {
+          el.remove();
+        }
+      }
+      requestAnimationFrame(tick);
+    }
+
+    // Keep it running forever (does not stop while screens change)
+    setInterval(spawnFall, config.spawnIntervalMs);
+
+    /***********************
+     * 2) Valentine App Screens
+     ***********************/
+    const screen = document.getElementById("screen");
+
+    // Edit these questions/options as you want:
+    const questions = [
+      {
+        q: "What’s your favorite memory of us?",
+        a: ["Our first meet", "A long talk at night", "A random surprise", "A special trip"]
+      },
+      {
+        q: "What do you love most about our bond?",
+        a: ["Trust", "Friendship", "Understanding", "Support"]
+      },
+      {
+        q: "If I could give you one thing today…",
+        a: ["A hug", "A letter", "A date night", "A forever promise"]
+      },
+      {
+        q: "Choose a word that feels like us:",
+        a: ["Home", "Magic", "Forever", "Peace"]
+      },
+      {
+        q: "One small thing that makes you smile?",
+        a: ["My messages", "My voice", "My silly jokes", "My care"]
+      }
+    ];
+
+    const state = {
+      step: "start", // start | q0..q4 | message | ask | yay
+      idx: 0,
+      answers: []
+    };
+
+    function heartsRow(n=3){
+      return `<div class="hearts">${Array.from({length:n}).map(()=>`<div class="heart"></div>`).join("")}</div>`;
+    }
+
+    function render(){
+      if (state.step === "start"){
+        screen.innerHTML = `
+          ${heartsRow(3)}
+          <h1>My Dearest Love</h1>
+          <p class="subtitle">A Valentine’s Journey</p>
+          <p class="prompt">I’ve prepared something special for you. Answer these 5 questions and discover a message written from my heart to yours.</p>
+          <button class="btn" id="beginBtn">Begin Our Journey ♡</button>
+          <p class="subtitle" style="margin-top:14px;">With all my love, forever and always 💕</p>
+        `;
+        document.getElementById("beginBtn").onclick = () => {
+          state.step = "q";
+          state.idx = 0;
+          render();
+        };
+        return;
+      }
+
+      if (state.step === "q"){
+        const q = questions[state.idx];
+        screen.innerHTML = `
+          ${heartsRow(3)}
+          <h1>Question ${state.idx + 1} / ${questions.length}</h1>
+          <p class="prompt">${q.q}</p>
+          <div class="choices">
+            ${q.a.map((txt,i)=>`<div class="choice" data-i="${i}">${txt}</div>`).join("")}
+          </div>
+          <div class="nav">
+            ${state.idx > 0 ? `<button class="btn ghost" id="backBtn">Back</button>` : ``}
+          </div>
+        `;
+        document.querySelectorAll(".choice").forEach(el=>{
+          el.onclick = () => {
+            state.answers[state.idx] = Number(el.dataset.i);
+            if (state.idx < questions.length - 1){
+              state.idx++;
+              render();
+            } else {
+              state.step = "message";
+              render();
+            }
+          };
+        });
+        const backBtn = document.getElementById("backBtn");
+        if (backBtn){
+          backBtn.onclick = () => {
+            state.idx = Math.max(0, state.idx - 1);
+            render();
+          };
+        }
+        return;
+      }
+
+      if (state.step === "message"){
+        screen.innerHTML = `
+          ${heartsRow(3)}
+          <h1>You Complete Me</h1>
+          <p class="prompt">
+            Every answer you chose reminded me of why I fell in love with you.
+            Your kindness, your laughter, the way you light up every room you walk into —
+            you are my everything.
+          </p>
+          <p class="prompt">
+            This Valentine’s Day, I want you to know that my love for you grows stronger with each passing day.
+            You are my best friend, my soulmate, and the greatest gift life has given me.
+          </p>
+          <div class="big-quote">“I love you more than words could ever express.”</div>
+          <div class="sign">Forever Yours,<br><b>Sudheer</b> 💗</div>
+          <div class="nav">
+            <button class="btn" id="nextAsk">Next</button>
+          </div>
+        `;
+        document.getElementById("nextAsk").onclick = () => {
+          state.step = "ask";
+          render();
+        };
+        return;
+      }
+
+      if (state.step === "ask"){
+        screen.innerHTML = `
+          ${heartsRow(3)}
+          <h1>Will you be my Valentine?</h1>
+          <p class="prompt">Choose your answer 💕</p>
+          <div class="nav">
+            <button class="btn" id="yesBtn">♡ Yes!</button>
+            <button class="btn ghost" id="noBtn">No</button>
+          </div>
+          <p class="subtitle" style="margin-top:14px;">(Tip: “No” is just for fun 😊)</p>
+        `;
+        document.getElementById("yesBtn").onclick = () => {
+          state.step = "yay";
+          render();
+        };
+        document.getElementById("noBtn").onclick = () => {
+          // playful: bounce back
+          state.step = "ask";
+          alert("Hehe 😄 Try again 💗");
+          render();
+        };
+        return;
+      }
+
+      if (state.step === "yay"){
+        // ✅ Add your 2 photos here (replace file names or full URLs)
+        const photo1 = "https://drive.google.com/file/d/1I55V2tzYuXBiw9JdIcXPHWKfHf-6mv-o/view?usp=drivesdk"; // e.g. https://your-site.com/photo1.jpg
+        const photo2 = "https://drive.google.com/file/d/1NV5M0psQj6cOIfzxIGDnGZ8OnDeS0wX2/view?usp=drivesdk"; // e.g. https://your-site.com/photo2.jpg
+
+        screen.innerHTML = `
+          ${heartsRow(5)}
+          <h1>Yay!</h1>
+          <p class="prompt">I knew you’d say yes! I love you so much! 💞</p>
+
+          <div class="photos">
+            <div class="photo" data-src="${photo1}">
+              <div class="photo-bg" style="background-image:url('${photo1}')"></div>
+              <span>Click to open</span>
+            </div>
+            <div class="photo" data-src="${photo2}">
+              <div class="photo-bg" style="background-image:url('${photo2}')"></div>
+              <span>Click to open</span>
+            </div>
+          </div>
+
+          <div class="nav" style="margin-top:18px;">
+            <button class="btn ghost" id="restartBtn">Start Again</button>
+          </div>
+          <p class="subtitle" style="margin-top:10px;">(Falling “I LOVE YOU CARINO” continues forever 💗)</p>
+        `;
+
+        document.getElementById("restartBtn").onclick = () => {
+          state.step = "start";
+          state.idx = 0;
+          state.answers = [];
+          render();
+        };
+
+        // Photo click -> modal
+        document.querySelectorAll(".photo").forEach(p=>{
+          p.onclick = () => openModal(p.dataset.src);
+        });
+
+        return;
+      }
+    }
+
+    render();
+
+    /***********************
+     * 3) Modal logic
+     ***********************/
+    const modal = document.getElementById("modal");
+    const modalImg = document.getElementById("modalImg");
+    const closeModalBtn = document.getElementById("closeModal");
+
+    function openModal(src){
+      modalImg.src = src;
+      modal.classList.add("open");
+    }
+    function closeModal(){
+      modal.classList.remove("open");
+      modalImg.src = "";
+    }
+    closeModalBtn.onclick = closeModal;
+    modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+    window.addEventListener("keydown", (e)=>{ if (e.key === "Escape") closeModal(); });
+  // ===== MUSIC CONTROL =====
+const music = document.getElementById("bgMusic");
+const playBtn = document.getElementById("playMusicBtn");
+
+if (playBtn && music) {
+  playBtn.addEventListener("click", () => {
+    music.volume = 0.35;   // soft romantic sound
+    music.play();
+    playBtn.innerText = "🎵 Playing";
+    playBtn.disabled = true;
+  });
+}
+  function openModal(src){
+  window.open(src, "_blank");
+}
+  </script>
+const music = document.getElementById("bgMusic");
+const playBtn = document.getElementById("playMusicBtn");
+
+if (playBtn && music) {
+  playBtn.addEventListener("click", async () => {
+    try {
+      music.volume = 0.35;
+      await music.play();
+      playBtn.innerText = "🎵 Playing";
+      playBtn.disabled = true;
+    } catch (e) {
+      alert("Music blocked. Please tap Play Music again.");
+    }
+  });
+}
+</body>
+</html>
